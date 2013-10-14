@@ -11,12 +11,19 @@ import java.util.logging.{Logger, Level}
 import com.twitter.finagle.http.service.RoutingService
 import com.twitter.finagle.http.path._
 import jp.akehoyayoi.finagle.sample.service.UserServiceFactory
+import scala.xml.XML
+import scala.io.Source
 
 object HttpServer {
 
   def main(args: Array[String]) {
+    val source = Source.fromURL(getClass.getResource("/db.xml"))
+    val db = XML.loadString(source.mkString)
+    val name = (db \ "name").text
+    val password = (db \ "password").text
+    val database = (db \ "database").text
     val host = new InetSocketAddress("localhost", 3306)
-    val client = Client(host.getHostName+":"+host.getPort, "<name>", "<password>", "<db>", Level.OFF)
+    val client = Client(host.getHostName+":"+host.getPort, name, password, database, Level.OFF)
     val userServiceFactory = new UserServiceFactory(client)
 
     val routingService = RoutingService.byPathObject {
